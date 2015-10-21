@@ -20,7 +20,7 @@ make setup-webos-ports
 Next, clone this repository
 
 ```
-cd webos-ports-env/webos-ports
+cd webos-ports
 git clone https://github.com/Andolamin/meta-rpi-luneos
 cd meta-rpi-luneos
 git submodule update --init
