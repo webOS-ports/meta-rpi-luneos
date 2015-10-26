@@ -1,4 +1,0 @@
-[submodule "meta-raspberrypi"]
-	path = meta-raspberrypi
-	url = https://github.com/Andolamin/meta-raspberrypi
-	branch = linux-4.1.x
