@@ -12,80 +12,29 @@ First, setup the webOS ports build directory
 
 ```
 mkdir webos-ports-env && cd webos-ports-env
-export ENV_NAME=testing
-wget https://raw.github.com/webOS-ports/webos-ports-setup/$ENV_NAME/Makefile
+wget https://raw.github.com/Andolamin/webos-ports-setup/alan/raspberrypi/Makefile
 make setup-webos-ports
 ```
 
-Next, clone this repository
-
+In webos-ports/meta-webos-ports/meta-luneui/recipes-qt/qt5/qtbase_git.bbappend, replace the line:
 ```
-cd webos-ports
-git clone https://github.com/Andolamin/meta-rpi-luneos
-cd meta-rpi-luneos
-git submodule update --init
-cd ..
+EXTRA_OECONF += "-qpa wayland-egl"
 ```
-
-Add meta-rpi-luneos and meta-rpi-luneos/meta-raspberrypi to conf/bblayers.conf
-Your bblayers.conf file should look like:
-
+with:
 ```
-# LAYER_CONF_VERSION is increased each time build/conf/bblayers.conf
-# changes incompatibly
-LCONF_VERSION = "6"
-
-BBPATH = "${TOPDIR}"
-
-BBFILES ?= ""
-
-# Add your overlay location to BBLAYERS
-# Make sure to have a conf/layers.conf in there
-BBLAYERS = " \
-  ${TOPDIR}/meta-rpi-luneos \
-  ${TOPDIR}/meta-rpi-luneos/meta-raspberrypi \
-  ${TOPDIR}/meta-webos-ports/meta-luneos \
-  ${TOPDIR}/meta-webos-ports/meta-luneui \
-  ${TOPDIR}/meta-smartphone/meta-hp \
-  ${TOPDIR}/meta-smartphone/meta-lg \
-  ${TOPDIR}/meta-smartphone/meta-acer \
-  ${TOPDIR}/meta-smartphone/meta-asus \
-  ${TOPDIR}/meta-smartphone/meta-samsung \
-  ${TOPDIR}/meta-smartphone/meta-android \
-  ${TOPDIR}/meta-smartphone/meta-fso \
-  ${TOPDIR}/meta-qt5 \
-  ${TOPDIR}/meta-openembedded/meta-ruby \
-  ${TOPDIR}/meta-openembedded/meta-systemd \
-  ${TOPDIR}/meta-openembedded/meta-networking \
-  ${TOPDIR}/meta-openembedded/meta-python \
-  ${TOPDIR}/meta-openembedded/meta-oe \
-  ${TOPDIR}/openembedded-core/meta \
-"
+EXTRA_OECONF += "-qpa wayland"
 ```
 
-Add the following configuration to the top of conf/local.conf
-
-```
-GPU_MEM ?= "192"
-PREFERRED_VERSION_linux-raspberrypi ?= "4.1.%"
-```
-
-And, Raspberry Pi 2 supports overclocking without voiding your warranty (within reason) so for better performance you can add the following to conf/local.conf
-
-```
-ARM_FREQ ?= "900"
-CORE_FREQ ?= "350"
-SDRAM_FREQ ?= "350"
-```
+This should be fixed with updates to the recipes soon.
 
 Build the image
-
 ```
+cd webos-ports
 . setup-env
 MACHINE=raspberrypi2 bb luneos-image
 ```
 
-You should be able to replace raspberrypi2 with raspberrypi to build for the original Pi, but I don't have one so I can't test. You can also build other LuneOS images, such as luneos-dev-image.
+You should be able to replace raspberrypi2 with raspberrypi to build for the original Pi, but I don't have one so I can't test. I expect that the recipes would need to be tweaked to support the original Raspberry Pi. You can also build other LuneOS images, such as luneos-dev-image.
 
 To flash the image to your SD card, first you need to find which device is the correct one. Run `lsblk` or `df -h` and find the one that looks like your card. For example, mine is /dev/sdd, but it will likely differ for you.
 
