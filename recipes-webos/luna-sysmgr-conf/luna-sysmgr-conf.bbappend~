@@ -1,0 +1,8 @@
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
+SRC_URI += " \
+    file://conf/luna-raspberrypi.conf \
+    file://conf/luna-raspberrypi2.conf \
+"
+
+
