@@ -16,22 +16,11 @@ wget https://raw.github.com/Andolamin/webos-ports-setup/alan/raspberrypi/Makefil
 make setup-webos-ports
 ```
 
-In webos-ports/meta-webos-ports/meta-luneui/recipes-qt/qt5/qtbase_git.bbappend, replace the line:
-```
-EXTRA_OECONF += "-qpa wayland-egl"
-```
-with:
-```
-EXTRA_OECONF += "-qpa wayland"
-```
-
-This should be fixed with updates to the recipes soon.
-
 Build the image
 ```
 cd webos-ports
 . setup-env
-MACHINE=raspberrypi2 bb luneos-image
+MACHINE=raspberrypi2 bb luneos-dev-image
 ```
 
 You should be able to replace raspberrypi2 with raspberrypi to build for the original Pi, but I don't have one so I can't test. I expect that the recipes would need to be tweaked to support the original Raspberry Pi. You can also build other LuneOS images, such as luneos-dev-image.
@@ -47,13 +36,7 @@ sudo umount /dev/sdd*
 Flash the image. I used luneos-image and raspberrypi2 so the following represents that. You might have to update your image path accordingly
 
 ```
-sudo dd if=tmp-glibc/deploy/images/raspberrypi2/luneos-image-raspberrypi2.rpi-sdimg of=/dev/sdd
-```
-
-If, like me, you're using the official touchscreen, you'll need to configure the device to use it. Edit the config.txt file in the new "raspberrypi" partition that was created to include:
-
-```
-dtoverlay=rpi-ft5406-overlay
+sudo dd if=tmp-glibc/deploy/images/raspberrypi2/luneos-dev-image-raspberrypi2.rpi-sdimg of=/dev/sdd
 ```
 
 Please, report any issues you have.
