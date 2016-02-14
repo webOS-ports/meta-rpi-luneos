@@ -4,7 +4,7 @@ libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
 Name: glesv2
-Description: GLESv2 for RaspberryPI
-Version: 0.0
-Libs: -L${libdir} -lEGL -lGLESv2
+Description: glesv2 for RaspberryPI
+Version: 10.4.4
+Libs: -L${libdir} -lGLESv2
 Cflags: -I${includedir}/vc -I${includedir}/interface -I${includedir}/interface/vcos -I${includedir}/interface/vcos/pthreads

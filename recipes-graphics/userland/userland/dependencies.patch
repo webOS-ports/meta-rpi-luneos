@@ -1,0 +1,34 @@
+diff -ur a/containers/mp4/CMakeLists.txt b/containers/mp4/CMakeLists.txt
+--- a/containers/mp4/CMakeLists.txt	2015-09-03 13:54:01.188507679 +0200
++++ b/containers/mp4/CMakeLists.txt	2015-09-03 13:51:42.045879353 +0200
+@@ -12,6 +12,7 @@
+ install(TARGETS reader_mp4 DESTINATION ${VMCS_PLUGIN_DIR})
+
+ add_library(writer_mp4 ${LIBRARY_TYPE} mp4_writer.c)
++add_dependencies(writer_mp4 vchostif)
+
+ target_link_libraries(writer_mp4 containers)
+
+diff -ur a/interface/khronos/CMakeLists.txt b/interface/khronos/CMakeLists.txt
+--- a/interface/khronos/CMakeLists.txt	2015-09-03 13:59:21.221067280 +0200
++++ b/interface/khronos/CMakeLists.txt	2015-09-03 13:51:42.109213881 +0200
+@@ -103,6 +103,7 @@
+ endif ()
+
+ add_library(EGL ${SHARED} ${EGL_SOURCE})
++add_dependencies(EGL vchostif)
+ add_library(GLESv2 ${SHARED} ${GLES_SOURCE})
+ add_library(OpenVG ${SHARED} ${VG_SOURCE})
+ add_library(WFC ${SHARED} ${WFC_SOURCE})
+@@ -113,9 +114,11 @@
+
+ # TODO do we need EGL_static and GLESv2_static now that khrn_static exists?
+ add_library(EGL_static STATIC ${EGL_SOURCE})
++add_dependencies(EGL_static vchostif)
+ add_library(GLESv2_static STATIC ${GLES_SOURCE})
+ add_library(khrn_static STATIC
+    ${EGL_SOURCE} ${GLES_SOURCE} ${VG_SOURCE} ${WFC_SOURCE} ${CLIENT_SOURCE})
++add_dependencies(khrn_static vchostif)
+
+ target_link_libraries(EGL ${EGL_LIBS})
+ target_link_libraries(GLESv2 EGL khrn_client vcos)

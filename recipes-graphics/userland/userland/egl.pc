@@ -5,6 +5,6 @@ includedir=${prefix}/include
 
 Name: egl
 Description: egl for RaspberryPI
-Version: 0.0
-Libs: -L${libdir} -lEGL -lGLESv2
+Version: 10.4.4
+Libs: -L${libdir} -lEGL
 Cflags: -I${includedir}/vc -I${includedir}/interface -I${includedir}/interface/vcos -I${includedir}/interface/vcos/pthreads
