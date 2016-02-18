@@ -1,0 +1,12 @@
+diff --git a/config.tests/qpa/egl/egl.pro b/config.tests/qpa/egl/egl.pro
+index f04d053..858f2bd 100644
+--- a/config.tests/qpa/egl/egl.pro
++++ b/config.tests/qpa/egl/egl.pro
+@@ -5,6 +5,6 @@ for(p, QMAKE_LIBDIR_EGL) {
+ }
+
+ !isEmpty(QMAKE_INCDIR_EGL): INCLUDEPATH += $$QMAKE_INCDIR_EGL
+-!isEmpty(QMAKE_LIBS_EGL): LIBS += $$QMAKE_LIBS_EGL
++!isEmpty(QMAKE_LIBS_EGL): LIBS += $$QMAKE_LIBS_EGL -lGLESv2
+
+
