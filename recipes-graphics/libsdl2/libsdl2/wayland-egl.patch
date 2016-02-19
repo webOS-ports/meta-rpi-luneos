@@ -1,0 +1,33 @@
+commit acb504c59980f92bf44fa2aef8ccc1d477f16cfd
+Author: sergk <kovrov@gmail.com>
+Date:   Thu Oct 15 02:15:02 2015 -0700
+
+    Add CMake EGL_INCLUDE_DIRS and include wayland-client.h
+
+diff --git a/cmake/sdlchecks.cmake b/cmake/sdlchecks.cmake
+index 2cd09e6..2f95bed 100644
+--- a/cmake/sdlchecks.cmake
++++ b/cmake/sdlchecks.cmake
+@@ -623,6 +623,10 @@ endmacro(CheckOpenGLX11)
+ # - nada
+ macro(CheckOpenGLESX11)
+   if(VIDEO_OPENGLES)
++    pkg_check_modules(EGL egl)
++    if(EGL_FOUND)
++      set(CMAKE_REQUIRED_INCLUDES ${EGL_INCLUDE_DIRS})
++    endif(EGL_FOUND)
+     check_c_source_compiles("
+         #include <EGL/egl.h>
+         int main (int argc, char** argv) {}" HAVE_VIDEO_OPENGL_EGL)
+diff --git a/src/video/wayland/SDL_waylandvideo.h b/src/video/wayland/SDL_waylandvideo.h
+index 06bcdc4..4f3a3b2 100644
+--- a/src/video/wayland/SDL_waylandvideo.h
++++ b/src/video/wayland/SDL_waylandvideo.h
+@@ -25,6 +25,7 @@
+ #define _SDL_waylandvideo_h
+ 
+ #include <EGL/egl.h>
++#include "wayland-client.h"
+ #include "wayland-util.h"
+ 
+ struct xkb_context;
