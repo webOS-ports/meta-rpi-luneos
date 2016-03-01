@@ -1,6 +1,6 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
+FILESEXTRAPATHS_prepend_rpi := "${THISDIR}/${PN}:"
 
-SRC_URI += " \
+SRC_URI_append_rpi += " \
     file://001-add-raspberrypi-conf.patch \
     "
 

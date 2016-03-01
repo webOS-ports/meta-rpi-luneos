@@ -1,1 +1,1 @@
-RDEPENDS_${PN}_remove = "sdl2-opengles-test"
+RDEPENDS_${PN}_remove_rpi = "sdl2-opengles-test"

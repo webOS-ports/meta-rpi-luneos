@@ -1,1 +1,1 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/luna-next-conf:"
+FILESEXTRAPATHS_prepend_rpi := "${THISDIR}/luna-next-conf:"
