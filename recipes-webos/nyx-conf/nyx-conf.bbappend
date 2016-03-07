@@ -1,2 +1,2 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/nyx-conf:"
+FILESEXTRAPATHS_prepend_rpi := "${THISDIR}/nyx-conf:"
 
