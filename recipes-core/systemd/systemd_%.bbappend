@@ -16,4 +16,5 @@ do_install_append_rpi() {
     install -m 0644 ${WORKDIR}/*.network ${D}${sysconfdir}/systemd/network/
 }
 
-USERADD_PARAM_${PN}_rpi = "--system --home /dev/null systemd-journal-gateway"
+# Add systemd-journal-gateway even without microhttpd in PACKAGECONFIG
+USERADD_PARAM_${PN}_append_rpi = " --system -d / -M --shell /bin/nologin systemd-journal-gateway;"
