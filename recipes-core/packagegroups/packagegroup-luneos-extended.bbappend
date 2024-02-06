@@ -18,6 +18,7 @@ RDEPENDS:${PN}:append:rpi = " \
     com.webos.service.peripheralmanager \
     com.webos.service.power2 \
     ofono \
+    phonesim \
     ${VIRTUAL-RUNTIME_com.webos.service.cec} \
 "
 
