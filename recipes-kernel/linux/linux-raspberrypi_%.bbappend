@@ -9,8 +9,6 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${SHRT_VER}:${THISDIR}/${BPN}:"
 
 SRC_URI += "\
     file://0001-bcm2835-v4l2-codec-fix-vchiq-mmal-renable.patch \
-    file://0001-kernel-seed-voicecard.patch \
-    file://0002-seed-voicecard-Update-from-HinTak-to-support-v6.1-ke.patch;minver=6.1.0 \
     ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', 'file://docker.cfg', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', 'file://ebtables.cfg', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', 'file://lxc.cfg', '', d)} \
