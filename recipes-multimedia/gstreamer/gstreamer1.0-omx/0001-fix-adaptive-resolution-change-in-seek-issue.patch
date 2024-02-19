@@ -1,0 +1,158 @@
+From cb4fb27496bed1ff61d3207fbc51973576c11d12 Mon Sep 17 00:00:00 2001
+From: Pankaj Maharana <pankaj.maharana@lge.com>
+Date: Wed, 8 Aug 2018 12:01:02 +0530
+Subject: [PATCH] fix adaptive resolution change in seek issue
+
+:Release Notes:
+Add "allow-flush-in-drain" property to fix adaptive resolution
+change in seek issue of MSE playback
+
+:Detailed Notes:
+During user seek, gst_omx_video_dec_flush is called from second
+time since flush already have been called from paused call.
+Making the playback goes to hung state indefinitely.
+By using setting this property to FALSE from GMP (BufferPlayer)
+we disable calling from drain api.
+Also handle the decoder disable/enable because of which output
+port goes to disabled state during populate many times.
+
+:Testing Performed:
+Checked Seek functionality in youtube test app is working
+correctly without any hang.
+
+---
+Upstream-Status: Inappropriate
+    - Only GMP buffer player uses this property to set it FALSE
+
+ omx/gstomxvideodec.c | 42 +++++++++++++++++++++++++++++-------------
+ omx/gstomxvideodec.h |  2 ++
+ 2 files changed, 31 insertions(+), 13 deletions(-)
+
+diff --git a/omx/gstomxvideodec.c b/omx/gstomxvideodec.c
+index ee41fa9..c4c166d 100644
+--- a/omx/gstomxvideodec.c
++++ b/omx/gstomxvideodec.c
+@@ -88,6 +88,7 @@ enum
+ {
+   PROP_0,
+   PROP_INTERNAL_ENTROPY_BUFFERS,
++  PROP_EXTERNAL_FLUSH_IN_DRAIN,
+ };
+ 
+ #define GST_OMX_VIDEO_DEC_INTERNAL_ENTROPY_BUFFERS_DEFAULT (5)
+@@ -106,16 +107,16 @@ static void
+ gst_omx_video_dec_set_property (GObject * object, guint prop_id,
+     const GValue * value, GParamSpec * pspec)
+ {
+-#ifdef USE_OMX_TARGET_ZYNQ_USCALE_PLUS
+   GstOMXVideoDec *self = GST_OMX_VIDEO_DEC (object);
+-#endif
+-
+   switch (prop_id) {
+ #ifdef USE_OMX_TARGET_ZYNQ_USCALE_PLUS
+     case PROP_INTERNAL_ENTROPY_BUFFERS:
+       self->internal_entropy_buffers = g_value_get_uint (value);
+       break;
+ #endif
++    case PROP_EXTERNAL_FLUSH_IN_DRAIN:
++      self->allow_flush_in_drain = g_value_get_boolean (value);
++      break;
+     default:
+       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+       break;
+@@ -126,16 +127,16 @@ static void
+ gst_omx_video_dec_get_property (GObject * object, guint prop_id,
+     GValue * value, GParamSpec * pspec)
+ {
+-#ifdef USE_OMX_TARGET_ZYNQ_USCALE_PLUS
+   GstOMXVideoDec *self = GST_OMX_VIDEO_DEC (object);
+-#endif
+-
+   switch (prop_id) {
+ #ifdef USE_OMX_TARGET_ZYNQ_USCALE_PLUS
+     case PROP_INTERNAL_ENTROPY_BUFFERS:
+       g_value_set_uint (value, self->internal_entropy_buffers);
+       break;
+ #endif
++    case PROP_EXTERNAL_FLUSH_IN_DRAIN:
++      g_value_set_boolean (value, self->allow_flush_in_drain);
++      break;
+     default:
+       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+       break;
+@@ -164,6 +165,11 @@ gst_omx_video_dec_class_init (GstOMXVideoDecClass * klass)
+           GST_PARAM_MUTABLE_READY));
+ #endif
+ 
++  g_object_class_install_property (gobject_class, PROP_EXTERNAL_FLUSH_IN_DRAIN,
++      g_param_spec_boolean ("allow-flush-in-drain", "Control flush call during drain",
++          "Allowing or stop flushing the buffers when decoder drain is called since",
++          TRUE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_CONSTRUCT));
++
+   element_class->change_state =
+       GST_DEBUG_FUNCPTR (gst_omx_video_dec_change_state);
+ 
+@@ -2795,15 +2801,17 @@ gst_omx_video_dec_set_format (GstVideoDecoder * decoder,
+   }
+ 
+   if (needs_disable && is_format_change) {
++    if (!self->allow_flush_in_drain && self->disabled)
++      goto skip_disable;
++
+     if (!gst_omx_video_dec_disable (self))
+       return FALSE;
+ 
+-    if (!self->disabled) {
+-      /* The local port_def is now obsolete so get it again. */
+-      gst_omx_port_get_port_definition (self->dec_in_port, &port_def);
+-    }
++    /* The local port_def is now obsolete so get it again. */
++    gst_omx_port_get_port_definition (self->dec_in_port, &port_def);
+   }
+ 
++skip_disable:
+   port_def.format.video.nFrameWidth = info->width;
+   port_def.format.video.nFrameHeight = GST_VIDEO_INFO_HEIGHT (info);
+   /*We cannot use GST_VIDEO_INFO_FIELD_HEIGHT() as encoded content may use either
+@@ -2999,7 +3007,8 @@ gst_omx_video_dec_handle_frame (GstVideoDecoder * decoder,
+       return GST_FLOW_OK;
+     }
+ 
+-    if (gst_omx_port_is_flushing (self->dec_out_port)) {
++    if (gst_omx_port_is_flushing (self->dec_out_port) ||
++        (!self->allow_flush_in_drain && self->disabled)) {
+       if (!gst_omx_video_dec_enable (self, frame->input_buffer))
+         goto enable_error;
+     }
+@@ -3312,9 +3321,16 @@ release_error:
+ static GstFlowReturn
+ gst_omx_video_dec_drain (GstVideoDecoder * decoder)
+ {
+-  gboolean ret;
++  GstFlowReturn ret;
+   ret = gst_omx_video_dec_finish (decoder);
+-  gst_omx_video_dec_flush (decoder);
++
++  GstOMXVideoDec *self = GST_OMX_VIDEO_DEC (decoder);
++  GST_DEBUG_OBJECT (self, "self->allow_flush_in_drain [ %d ]",
++                           self->allow_flush_in_drain);
++  if (self->allow_flush_in_drain) {
++    gst_omx_video_dec_flush (decoder);
++  }
++
+   return ret;
+ }
+ 
+diff --git a/omx/gstomxvideodec.h b/omx/gstomxvideodec.h
+index df441d9..4c188c7 100644
+--- a/omx/gstomxvideodec.h
++++ b/omx/gstomxvideodec.h
+@@ -100,6 +100,8 @@ struct _GstOMXVideoDec
+ #ifdef USE_OMX_TARGET_ZYNQ_USCALE_PLUS
+   guint32 internal_entropy_buffers;
+ #endif
++
++  gboolean allow_flush_in_drain;
+ };
+ 
+ struct _GstOMXVideoDecClass
