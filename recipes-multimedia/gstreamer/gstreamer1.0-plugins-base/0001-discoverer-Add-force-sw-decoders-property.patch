@@ -1,0 +1,133 @@
+From 3f01fa06fa77a42bcdf7b07b89655d3d99283952 Mon Sep 17 00:00:00 2001
+From: Jimmy Ohn <yongjin.ohn@lge.com>
+Date: Mon, 5 Oct 2020 15:12:24 +0900
+Subject: [PATCH] ose: com.webos.service.mediaindexer=2 webos-initscript=54
+
+---
+Upstream-Status: Pending
+
+ gst-libs/gst/pbutils/gstdiscoverer.c | 35 +++++++++++++++++++++++++++-
+ tools/gst-discoverer.c               |  5 +++-
+ 2 files changed, 38 insertions(+), 2 deletions(-)
+
+diff --git a/gst-libs/gst/pbutils/gstdiscoverer.c b/gst-libs/gst/pbutils/gstdiscoverer.c
+index 60e54127b..3b51545da 100644
+--- a/gst-libs/gst/pbutils/gstdiscoverer.c
++++ b/gst-libs/gst/pbutils/gstdiscoverer.c
+@@ -143,6 +143,7 @@ struct _GstDiscovererPrivate
+   gulong bus_cb_id;
+ 
+   gboolean use_cache;
++  gboolean force_sw_decoders;
+ };
+ 
+ #define DISCO_LOCK(dc) g_mutex_lock (&dc->priv->lock);
+@@ -177,12 +178,14 @@ enum
+ 
+ #define DEFAULT_PROP_TIMEOUT 15 * GST_SECOND
+ #define DEFAULT_PROP_USE_CACHE FALSE
++#define DEFAULT_PROP_FORCE_SW_DECODERS FALSE
+ 
+ enum
+ {
+   PROP_0,
+   PROP_TIMEOUT,
+-  PROP_USE_CACHE
++  PROP_USE_CACHE,
++  PROP_FORCE_SW_DECODERS
+ };
+ 
+ static guint gst_discoverer_signals[LAST_SIGNAL] = { 0 };
+@@ -261,6 +264,20 @@ gst_discoverer_class_init (GstDiscovererClass * klass)
+           DEFAULT_PROP_USE_CACHE,
+           G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS));
+ 
++  /**
++    * GstDiscoverer::force-sw-decoders:
++    *
++    * While auto-plugging, if set to %TRUE, those decoders within
++    * "Hardware" klass will be ignored. Otherwise they will be tried.
++    *
++    * Since: 1.18
++    */
++  g_object_class_install_property (gobject_class, PROP_FORCE_SW_DECODERS,
++      g_param_spec_boolean ("force-sw-decoders", "Software Decoders Only",
++          "Use only software decoders to process streams",
++          DEFAULT_PROP_FORCE_SW_DECODERS,
++          G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS));
++
+   /* signals */
+   /**
+    * GstDiscoverer::finished:
+@@ -347,6 +364,7 @@ gst_discoverer_init (GstDiscoverer * dc)
+ 
+   dc->priv->timeout = DEFAULT_PROP_TIMEOUT;
+   dc->priv->use_cache = DEFAULT_PROP_USE_CACHE;
++  dc->priv->force_sw_decoders = DEFAULT_PROP_FORCE_SW_DECODERS;
+   dc->priv->async = FALSE;
+ 
+   g_mutex_init (&dc->priv->lock);
+@@ -489,6 +507,11 @@ gst_discoverer_set_property (GObject * object, guint prop_id,
+       dc->priv->use_cache = g_value_get_boolean (value);
+       DISCO_UNLOCK (dc);
+       break;
++    case PROP_FORCE_SW_DECODERS:
++      DISCO_LOCK (dc);
++      dc->priv->force_sw_decoders = g_value_get_boolean (value);
++      DISCO_UNLOCK (dc);
++      break;
+     default:
+       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+       break;
+@@ -512,6 +535,11 @@ gst_discoverer_get_property (GObject * object, guint prop_id,
+       g_value_set_boolean (value, dc->priv->use_cache);
+       DISCO_UNLOCK (dc);
+       break;
++    case PROP_FORCE_SW_DECODERS:
++      DISCO_LOCK (dc);
++      g_value_set_boolean (value, dc->priv->force_sw_decoders);
++      DISCO_UNLOCK (dc);
++      break;
+     default:
+       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+       break;
+@@ -1900,6 +1928,11 @@ _setup_locked (GstDiscoverer * dc)
+ 
+   GST_DEBUG ("Current is now %s", dc->priv->current_info->uri);
+ 
++  /* set force-sw-decoders on uridecodebin */
++  if (dc->priv->force_sw_decoders)
++    g_object_set (dc->priv->uridecodebin, "force-sw-decoders",
++        dc->priv->force_sw_decoders, NULL);
++
+   dc->priv->processing = TRUE;
+ 
+   dc->priv->target_state = GST_STATE_PAUSED;
+diff --git a/tools/gst-discoverer.c b/tools/gst-discoverer.c
+index 5bd27ac9f..2171f10b3 100644
+--- a/tools/gst-discoverer.c
++++ b/tools/gst-discoverer.c
+@@ -633,12 +633,14 @@ main (int argc, char **argv)
+   GError *err = NULL;
+   GstDiscoverer *dc;
+   gint timeout = 10;
+-  gboolean use_cache = FALSE, print_cache_dir = FALSE;
++  gboolean use_cache = FALSE, print_cache_dir = FALSE, force_sw_decoders = FALSE;
+   GOptionEntry options[] = {
+     {"async", 'a', 0, G_OPTION_ARG_NONE, &async,
+         "Run asynchronously", NULL},
+     {"use-cache", 0, 0, G_OPTION_ARG_NONE, &use_cache,
+         "Use GstDiscovererInfo from our cache.", NULL},
++    {"force-sw-decoders", 0, 0, G_OPTION_ARG_NONE, &force_sw_decoders,
++        "Use only software decoders to process streams", NULL},
+     {"print-cache-dir", 0, 0, G_OPTION_ARG_NONE, &print_cache_dir,
+         "Print the directory of the discoverer cache.", NULL},
+     {"timeout", 't', 0, G_OPTION_ARG_INT, &timeout,
+@@ -692,6 +694,7 @@ main (int argc, char **argv)
+   }
+ 
+   g_object_set (dc, "use-cache", use_cache, NULL);
++  g_object_set (dc, "force-sw-decoders", force_sw_decoders, NULL);
+ 
+   if (!async) {
+     gint i;
