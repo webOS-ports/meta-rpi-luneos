@@ -92,12 +92,13 @@ DISABLE_OVERSCAN = "1"
 # Configure all Bluetooth service classes we want to support
 WEBOS_BLUETOOTH_ENABLED_SERVICE_CLASSES = "SPP GATT FTP OPP A2DP"
 
+# We don't want LG's partition layout etc for now, since it doesn't boot yet. Let's do defaults instead
 # Use ext4 as a uSD rootfs type and don't build ext3
 SDIMG_ROOTFS_TYPE = "ext4"
 IMAGE_FSTYPES:remove = "ext3"
 
 # fixed size boot image
-# WKS_FILE = "sdimage-raspberrypi-webos.wks"
+WKS_FILE = "sdimage-raspberrypi-webos.wks"
 
 # Use Fake KMS until surface-manager is fixed to support Full KMS, see WRP-5
 VC4DTBO = "vc4-fkms-v3d"
