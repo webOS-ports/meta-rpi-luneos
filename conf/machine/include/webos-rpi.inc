@@ -8,10 +8,12 @@ WEBOS_TARGET_MACHINE_IMPL = "hardware"
 
 MACHINE_FEATURES += "armnn auto-acceleration edgetpu gpu-delegate gl-backend"
 
-# Set gpu memory to "128M"
-# Wen use default setting (64M), we got the below error
-# [EXIT]: EGL Error : Could not create the egl surface: error = 0x3003
-GPU_MEM = "128"
+# On Raspberry Pi 3B, at least 160MB gpu_mem setting is required for VKB to
+# reliably function at 1920x1080.  At 1280x720 or lower, setting it as low
+# as the minimum, 16, seems to work.  Override in your local.conf if you do
+# not intend to use 1080 resolution.  At 1080, all other video features seem
+# to work, except for VKB, with the lower settings.
+GPU_MEM ??= "160"
 
 PREFERRED_PROVIDER_aval-impl = "avoutput-adaptation-layer-rpi"
 VIRTUAL-RUNTIME_aval-impl = "avoutput-adaptation-layer-rpi"
@@ -95,6 +97,3 @@ WEBOS_BLUETOOTH_ENABLED_SERVICE_CLASSES = "SPP GATT FTP OPP A2DP"
 # Use ext4 as a uSD rootfs type and don't build ext3
 SDIMG_ROOTFS_TYPE = "ext4"
 IMAGE_FSTYPES:remove = "ext3"
-
-# Use Fake KMS until surface-manager is fixed to support Full KMS, see WRP-5
-VC4DTBO = "vc4-fkms-v3d"
