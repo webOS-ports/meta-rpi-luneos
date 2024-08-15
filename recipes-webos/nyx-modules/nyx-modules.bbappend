@@ -1,7 +1,8 @@
 # Copyright (c) 2020-2024 LG Electronics, Inc.
 
-EXTENDPRAUTO:append:rpi = "webosrpi7"
+EXTENDPRAUTO:append:rpi = "webosrpi8"
 
-RDEPENDS:${PN}:append:rpi = " libcec-examples"
+# packagegroup-luneos-extended says CEC is only supported on pi4-64
+RDEPENDS:${PN}:append:raspberrypi4-64 = " libcec-examples"
 
-NYX_MODULES_REQUIRED:append:rpi = "NYXMOD_OW_CEC;"
+NYX_MODULES_REQUIRED:append:raspberrypi4-64 = "NYXMOD_OW_CEC;"
