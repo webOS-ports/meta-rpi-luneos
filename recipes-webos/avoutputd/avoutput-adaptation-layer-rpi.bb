@@ -15,8 +15,6 @@ inherit webos_public_repo
 
 SRC_URI = "${WEBOSOSE_GIT_REPO_COMPLETE}"
 
-S = "${WORKDIR}/git"
-
 DEPENDS = "udev glib-2.0 pmloglib libpbnjson ls2-helpers alsa-lib libdrm avoutput-adaptation-layer-api"
 
 WEBOS_VERSION = "1.0.0-1_5373de0f1d195a9081ae85770d81283c7a717580"
