@@ -18,6 +18,9 @@ inherit webos_test_provider
 inherit webos_public_repo
 
 SRC_URI = "${WEBOSOSE_GIT_REPO_COMPLETE}"
-S = "${WORKDIR}/git"
+# No S: the git fetcher unpacks to ${UNPACKDIR}/${BP} now
+# (BB_GIT_DEFAULT_DESTSUFFIX), which is already the default S. The old
+# S = "${WORKDIR}/git" was wrong on both counts and matched no other webOS
+# recipe in the tree, none of which set S at all.
 
 COMPATIBLE_MACHINE = "^rpi$"
