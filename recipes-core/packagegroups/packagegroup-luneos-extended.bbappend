@@ -26,13 +26,18 @@ RDEPENDS:${PN}:append:rpi = " \
     mesa-megadriver \
 "
 
-# gst omx is used only for raspberrypi builds
-VIRTUAL-RUNTIME_media:append:rpi = " \
-    gstreamer1.0-omx \
-"
-# Until build issues caused by PLAT-44962 are fixed in PLAT-45700
-VIRTUAL-RUNTIME_media:raspberrypi3-64 = ""
+# gst-omx was dropped from oe-core (deprecated upstream, gone since GStreamer
+# 1.24); on 64-bit RPi video decode uses v4l2codecs instead of the legacy OMX
+# firmware interface, so don't append it anywhere. Note a :append:rpi is
+# applied after machine-override assignments, so blanking per-machine (as the
+# old raspberrypi3-64 line did) cannot remove it.
+# VIRTUAL-RUNTIME_media:append:rpi = " \
+#     gstreamer1.0-omx \
+# "
 
+# Default needed: an undefined variable would end up as a literal
+# '${VIRTUAL-RUNTIME_media}' runtime dependency
+VIRTUAL-RUNTIME_media ?= ""
 RDEPENDS:${PN}:append:rpi = " \
     ${VIRTUAL-RUNTIME_media} \
 "
