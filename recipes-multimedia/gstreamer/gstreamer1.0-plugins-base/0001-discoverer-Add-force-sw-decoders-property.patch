@@ -10,11 +10,9 @@ Upstream-Status: Pending
  tools/gst-discoverer.c               |  5 +++-
  2 files changed, 38 insertions(+), 2 deletions(-)
 
-diff --git a/gst-libs/gst/pbutils/gstdiscoverer.c b/gst-libs/gst/pbutils/gstdiscoverer.c
-index 60e54127b..3b51545da 100644
 --- a/gst-libs/gst/pbutils/gstdiscoverer.c
 +++ b/gst-libs/gst/pbutils/gstdiscoverer.c
-@@ -143,6 +143,7 @@ struct _GstDiscovererPrivate
+@@ -144,6 +144,7 @@
    gulong bus_cb_id;
  
    gboolean use_cache;
@@ -22,7 +20,7 @@ index 60e54127b..3b51545da 100644
  };
  
  #define DISCO_LOCK(dc) g_mutex_lock (&dc->priv->lock);
-@@ -177,12 +178,14 @@ enum
+@@ -170,12 +171,14 @@
  
  #define DEFAULT_PROP_TIMEOUT 15 * GST_SECOND
  #define DEFAULT_PROP_USE_CACHE FALSE
@@ -38,7 +36,7 @@ index 60e54127b..3b51545da 100644
  };
  
  static guint gst_discoverer_signals[LAST_SIGNAL] = { 0 };
-@@ -261,6 +264,20 @@ gst_discoverer_class_init (GstDiscovererClass * klass)
+@@ -273,6 +276,20 @@
            DEFAULT_PROP_USE_CACHE,
            G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS));
  
@@ -59,7 +57,7 @@ index 60e54127b..3b51545da 100644
    /* signals */
    /**
     * GstDiscoverer::finished:
-@@ -347,6 +364,7 @@ gst_discoverer_init (GstDiscoverer * dc)
+@@ -366,6 +383,7 @@
  
    dc->priv->timeout = DEFAULT_PROP_TIMEOUT;
    dc->priv->use_cache = DEFAULT_PROP_USE_CACHE;
@@ -67,7 +65,7 @@ index 60e54127b..3b51545da 100644
    dc->priv->async = FALSE;
  
    g_mutex_init (&dc->priv->lock);
-@@ -489,6 +507,11 @@ gst_discoverer_set_property (GObject * object, guint prop_id,
+@@ -503,6 +521,11 @@
        dc->priv->use_cache = g_value_get_boolean (value);
        DISCO_UNLOCK (dc);
        break;
@@ -79,7 +77,7 @@ index 60e54127b..3b51545da 100644
      default:
        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
        break;
-@@ -512,6 +535,11 @@ gst_discoverer_get_property (GObject * object, guint prop_id,
+@@ -526,6 +549,11 @@
        g_value_set_boolean (value, dc->priv->use_cache);
        DISCO_UNLOCK (dc);
        break;
@@ -91,9 +89,9 @@ index 60e54127b..3b51545da 100644
      default:
        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
        break;
-@@ -1900,6 +1928,11 @@ _setup_locked (GstDiscoverer * dc)
+@@ -1941,6 +1969,11 @@
  
-   GST_DEBUG ("Current is now %s", dc->priv->current_info->uri);
+   GST_DEBUG_OBJECT (dc, "Current is now %s", dc->priv->current_info->uri);
  
 +  /* set force-sw-decoders on uridecodebin */
 +  if (dc->priv->force_sw_decoders)
@@ -103,11 +101,9 @@ index 60e54127b..3b51545da 100644
    dc->priv->processing = TRUE;
  
    dc->priv->target_state = GST_STATE_PAUSED;
-diff --git a/tools/gst-discoverer.c b/tools/gst-discoverer.c
-index 5bd27ac9f..2171f10b3 100644
 --- a/tools/gst-discoverer.c
 +++ b/tools/gst-discoverer.c
-@@ -633,12 +633,14 @@ main (int argc, char **argv)
+@@ -643,12 +643,14 @@
    GError *err = NULL;
    GstDiscoverer *dc;
    gint timeout = 10;
@@ -123,7 +119,7 @@ index 5bd27ac9f..2171f10b3 100644
      {"print-cache-dir", 0, 0, G_OPTION_ARG_NONE, &print_cache_dir,
          "Print the directory of the discoverer cache.", NULL},
      {"timeout", 't', 0, G_OPTION_ARG_INT, &timeout,
-@@ -692,6 +694,7 @@ main (int argc, char **argv)
+@@ -711,6 +713,7 @@
    }
  
    g_object_set (dc, "use-cache", use_cache, NULL);
